@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="es-AR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Generala</title>
+<style>
+  :root{
+    --bg:#fafaf9; --fg:#1c1917; --mut:#78716c; --line:#e7e5e4; --card:#ffffff;
+    --acc:#b91c1c; --accbg:#fef2f2; --ok:#15803d; --okbg:#f0fdf4; --pip:#1c1917;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#141413; --fg:#f5f5f4; --mut:#a8a29e; --line:#2e2c2a; --card:#1c1b1a;
+      --acc:#f87171; --accbg:#2a1717; --ok:#4ade80; --okbg:#14231a; --pip:#f5f5f4;
+    }
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--fg);
+    font:15px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+  main{max-width:880px;margin:0 auto;padding:16px 16px 48px}
+  header{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:14px}
+  h1{font-size:20px;margin:0;font-weight:600;letter-spacing:-.01em}
+  h2{font-size:13px;margin:32px 0 12px;font-weight:600;color:var(--mut);text-transform:uppercase;letter-spacing:.06em}
+  button{font:inherit;color:inherit;background:none;border:1px solid var(--line);border-radius:8px;
+    padding:6px 12px;cursor:pointer}
+  button:hover{border-color:var(--mut)}
+  .row-actions{display:flex;gap:8px}
+
+  #banner{display:none;margin:0 0 12px;padding:10px 14px;border-radius:10px;
+    background:var(--okbg);color:var(--ok);font-weight:600}
+
+  .wrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--card)}
+  table{border-collapse:collapse;width:100%;min-width:100%}
+  th,td{border-bottom:1px solid var(--line);padding:0;text-align:center}
+  tr:last-child td{border-bottom:0}
+  thead th{padding:8px 4px;position:sticky;top:0;background:var(--card)}
+  th.lbl,td.lbl{position:sticky;left:0;background:var(--card);text-align:left;
+    padding:8px 12px;min-width:132px;z-index:1;border-right:1px solid var(--line)}
+  td.lbl .hint{display:block;color:var(--mut);font-size:11px;margin-top:1px}
+  td.lbl .name{display:flex;align-items:center;gap:8px;font-weight:500}
+  .pl{min-width:84px}
+  .pl input{width:100%;border:0;background:none;text-align:center;font:inherit;font-weight:600;
+    color:inherit;padding:4px;border-radius:6px}
+  .pl input:focus{outline:2px solid var(--line)}
+  .pl .x{display:block;margin:0 auto;border:0;padding:0 6px;color:var(--mut);font-size:12px;line-height:1}
+  .cell{display:block;width:100%;height:46px;border:0;border-radius:0;font-size:17px;font-variant-numeric:tabular-nums}
+  .cell:hover{background:var(--accbg)}
+  .cell.empty{color:var(--line)}
+  .cell.cross{color:var(--mut)}
+  .cell sup{font-size:10px;color:var(--acc);margin-left:2px}
+  tr.sep td{border-top:2px solid var(--line)}
+  tfoot td{font-weight:700;font-size:18px;padding:12px 4px;font-variant-numeric:tabular-nums}
+  tfoot td.lbl{font-size:14px}
+  td.lead{color:var(--acc)}
+
+  /* dados */
+  .die{display:inline-grid;grid-template:repeat(3,1fr)/repeat(3,1fr);width:22px;height:22px;
+    border:1.5px solid var(--fg);border-radius:5px;padding:2px;gap:0;flex:none}
+  .die i{width:4px;height:4px;border-radius:50%;background:var(--pip);margin:auto;visibility:hidden}
+  .die i.on{visibility:visible}
+  .die.big{width:34px;height:34px;padding:3px;border-radius:7px}
+  .die.big i{width:6px;height:6px}
+  .die.dim{opacity:.35}
+
+  /* ayuda */
+  .help{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px}
+  .card{border:1px solid var(--line);border-radius:12px;background:var(--card);padding:14px}
+  .card h3{margin:0 0 2px;font-size:15px;display:flex;justify-content:space-between;align-items:baseline}
+  .card h3 span{font-weight:500;color:var(--acc);font-size:13px}
+  .card p{margin:0 0 10px;color:var(--mut);font-size:13px}
+  .ex{display:flex;gap:4px;margin-top:6px;flex-wrap:wrap}
+  .ex+.ex{margin-top:8px}
+  .note{color:var(--mut);font-size:13px;margin-top:12px}
+
+  /* selector */
+  #sheet{position:fixed;inset:0;display:none;align-items:flex-end;justify-content:center;
+    background:rgba(0,0,0,.4);z-index:10}
+  #sheet.open{display:flex}
+  .panel{background:var(--card);width:100%;max-width:440px;border-radius:16px 16px 0 0;padding:16px;
+    border:1px solid var(--line)}
+  @media (min-width:600px){#sheet{align-items:center}.panel{border-radius:16px}}
+  .panel h4{margin:0 0 12px;font-size:15px}
+  .opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(88px,1fr));gap:8px}
+  .opts button{padding:12px 6px;display:flex;flex-direction:column;align-items:center;gap:2px}
+  .opts button b{font-size:18px}
+  .opts button small{color:var(--mut);font-size:11px}
+  .opts button.warn b{color:var(--acc)}
+  .panel .foot{display:flex;justify-content:space-between;margin-top:12px}
+  .panel .foot button{border:0;color:var(--mut)}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1>Generala</h1>
+    <div class="row-actions">
+      <button id="add">+ Jugador</button>
+      <button id="reset">Nueva partida</button>
+    </div>
+  </header>
+
+  <div id="banner"></div>
+  <div class="wrap"><table id="tbl"></table></div>
+  <p class="note">Tocá una celda para anotar. <b>✕</b> es tachar (0 puntos). Una <sup style="color:var(--acc)">S</sup> marca que salió servida.</p>
+
+  <h2>Ayuda memoria</h2>
+  <div class="help" id="help"></div>
+  <p class="note">En la Generala servida se gana la partida al instante. La Doble Generala (100) es una variante opcional: se anota si ya tenías la Generala hecha y la repetís.</p>
+</main>
+
+<div id="sheet"><div class="panel" id="panel"></div></div>
+
+<script>
+const ROWS = [
+  {k:'n1', t:'n', n:1, name:'1'},
+  {k:'n2', t:'n', n:2, name:'2'},
+  {k:'n3', t:'n', n:3, name:'3'},
+  {k:'n4', t:'n', n:4, name:'4'},
+  {k:'n5', t:'n', n:5, name:'5'},
+  {k:'n6', t:'n', n:6, name:'6'},
+  {k:'esc', t:'c', name:'Escalera', base:20, serv:25, sep:true},
+  {k:'ful', t:'c', name:'Full',     base:30, serv:35},
+  {k:'pok', t:'c', name:'Póker',    base:40, serv:45},
+  {k:'gen', t:'g', name:'Generala', base:50, serv:null},
+  {k:'dob', t:'d', name:'Doble Generala', base:100, opt:true}
+];
+const KEY = 'generala-v1';
+const MAX = 8;
+let S = load() || fresh(['Jugador 1','Jugador 2']);
+
+function fresh(names){ return {players:names, cells:{}}; }
+function load(){ try{ return JSON.parse(localStorage.getItem(KEY)); }catch(e){ return null; } }
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){} }
+function cell(k,i){ return (S.cells[k]||[])[i]; }
+function setCell(k,i,v){
+  const a = S.cells[k] = S.cells[k] || [];
+  if(v===null) delete a[i]; else a[i]=v;
+  save(); render();
+}
+
+/* dados */
+const PIPS = {1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8]};
+function die(n,big,dim){
+  let h=''; for(let i=0;i<9;i++) h+=`<i class="${PIPS[n].includes(i)?'on':''}"></i>`;
+  return `<span class="die${big?' big':''}${dim?' dim':''}">${h}</span>`;
+}
+function dice(arr,big){ return `<div class="ex">${arr.map(n=>die(n,big)).join('')}</div>`; }
+
+/* totales */
+function total(i){
+  return ROWS.reduce((s,r)=>{ const c=cell(r.k,i); return s+(c?c.p:0); },0);
+}
+function filled(i){ return ROWS.filter(r=>!r.opt).every(r=>cell(r.k,i)); }
+
+/* render planilla */
+function render(){
+  const t = document.getElementById('tbl');
+  const P = S.players;
+  const totals = P.map((_,i)=>total(i));
+  const max = Math.max(...totals);
+  let h = '<thead><tr><th class="lbl"></th>';
+  P.forEach((n,i)=>{
+    h += `<th class="pl"><input value="${esc(n)}" data-i="${i}" aria-label="Nombre del jugador ${i+1}">`
+       + (P.length>1?`<button class="x" data-del="${i}" title="Quitar jugador">quitar</button>`:'')
+       + `</th>`;
+  });
+  h += '</tr></thead><tbody>';
+  ROWS.forEach(r=>{
+    let hint='';
+    if(r.t==='n') hint = `suma de los ${r.n}`;
+    else if(r.t==='c') hint = `${r.base} · servida ${r.serv}`;
+    else if(r.t==='g') hint = `${r.base} · servida gana`;
+    else hint = `${r.base} · opcional`;
+    const icon = r.t==='n' ? die(r.n) : '';
+    h += `<tr class="${r.sep?'sep':''}"><td class="lbl"><span class="name">${icon}${r.name}</span><span class="hint">${hint}</span></td>`;
+    P.forEach((_,i)=>{
+      const c = cell(r.k,i);
+      let txt='·', cls='empty';
+      if(c){ if(c.x){txt='✕';cls='cross';} else {txt=c.p+(c.s?'<sup>S</sup>':'');cls='';} }
+      h += `<td><button class="cell ${cls}" data-k="${r.k}" data-i="${i}">${txt}</button></td>`;
+    });
+    h += '</tr>';
+  });
+  h += '</tbody><tfoot><tr><td class="lbl">Total</td>';
+  totals.forEach((v,i)=>{ h += `<td class="${v===max&&max>0?'lead':''}">${v}</td>`; });
+  h += '</tr></tfoot>';
+  t.innerHTML = h;
+
+  // ganador
+  const b = document.getElementById('banner');
+  const gs = P.findIndex((_,i)=>{const c=cell('gen',i); return c&&c.s;});
+  if(gs>=0){ b.style.display='block'; b.textContent=`¡Generala servida! Gana ${P[gs]}.`; }
+  else if(P.every((_,i)=>filled(i))){
+    const w = P.filter((_,i)=>totals[i]===max);
+    b.style.display='block';
+    b.textContent = w.length>1 ? `Empate entre ${w.join(' y ')} con ${max} puntos.` : `Gana ${w[0]} con ${max} puntos.`;
+  } else b.style.display='none';
+}
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
+
+/* selector de puntaje */
+const sheet = document.getElementById('sheet'), panel = document.getElementById('panel');
+function openSheet(k,i){
+  const r = ROWS.find(x=>x.k===k);
+  const btn = (label,sub,val,cls='') =>
+    `<button class="${cls}" data-v='${JSON.stringify(val)}'><b>${label}</b><small>${sub}</small></button>`;
+  let o='';
+  if(r.t==='n'){
+    o += btn('✕','tachar',{p:0,x:1},'warn');
+    for(let q=1;q<=5;q++) o += btn(q*r.n, q+(q===1?' dado':' dados'), {p:q*r.n});
+  } else if(r.t==='c'){
+    o += btn('✕','tachar',{p:0,x:1},'warn');
+    o += btn(r.base,'armada',{p:r.base});
+    o += btn(r.serv,'servida',{p:r.serv,s:1});
+  } else if(r.t==='g'){
+    o += btn('✕','tachar',{p:0,x:1},'warn');
+    o += btn(50,'armada',{p:50});
+    o += btn('Servida','¡gana!',{p:50,s:1});
+  } else {
+    o += btn('✕','tachar',{p:0,x:1},'warn');
+    o += btn(100,'doble',{p:100});
+  }
+  const who = S.players[i] || '';
+  panel.innerHTML = `<h4>${esc(who)} · ${r.name}</h4><div class="opts">${o}</div>
+    <div class="foot"><button data-clear>Borrar</button><button data-close>Cancelar</button></div>`;
+  panel.dataset.k=k; panel.dataset.i=i;
+  sheet.classList.add('open');
+}
+function closeSheet(){ sheet.classList.remove('open'); }
+sheet.addEventListener('click',e=>{
+  if(e.target===sheet || e.target.closest('[data-close]')) return closeSheet();
+  const b = e.target.closest('button'); if(!b) return;
+  const k=panel.dataset.k, i=+panel.dataset.i;
+  if(b.hasAttribute('data-clear')){ setCell(k,i,null); closeSheet(); }
+  else if(b.dataset.v){ setCell(k,i,JSON.parse(b.dataset.v)); closeSheet(); }
+});
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeSheet(); });
+
+/* eventos de la planilla */
+document.getElementById('tbl').addEventListener('click',e=>{
+  const c = e.target.closest('.cell');
+  if(c) return openSheet(c.dataset.k, +c.dataset.i);
+  const d = e.target.closest('[data-del]');
+  if(d){
+    const i=+d.dataset.del;
+    if(!confirm(`¿Quitar a ${S.players[i]}?`)) return;
+    S.players.splice(i,1);
+    for(const k in S.cells) S.cells[k].splice(i,1);
+    save(); render();
+  }
+});
+document.getElementById('tbl').addEventListener('change',e=>{
+  if(e.target.matches('input[data-i]')){
+    S.players[+e.target.dataset.i] = e.target.value.trim() || ('Jugador '+(+e.target.dataset.i+1));
+    save(); render();
+  }
+});
+document.getElementById('add').onclick=()=>{
+  if(S.players.length>=MAX) return alert('Máximo '+MAX+' jugadores.');
+  S.players.push('Jugador '+(S.players.length+1)); save(); render();
+};
+document.getElementById('reset').onclick=()=>{
+  if(!confirm('¿Empezar una partida nueva? Se borran los puntos, los jugadores quedan.')) return;
+  S.cells={}; save(); render();
+};
+
+/* ayuda memoria */
+document.getElementById('help').innerHTML = `
+  <div class="card"><h3>Escalera <span>20 · servida 25</span></h3>
+    <p>Cinco dados seguidos. Vale el 1 al final: solo hay tres.</p>
+    ${dice([1,2,3,4,5])}${dice([2,3,4,5,6])}${dice([3,4,5,6,1])}</div>
+  <div class="card"><h3>Full <span>30 · servido 35</span></h3>
+    <p>Tres dados iguales y otros dos iguales entre sí.</p>
+    ${dice([3,3,3,5,5])}${dice([6,6,2,2,2])}</div>
+  <div class="card"><h3>Póker <span>40 · servido 45</span></h3>
+    <p>Cuatro dados iguales; el quinto es cualquiera.</p>
+    ${dice([4,4,4,4,2])}${dice([1,1,1,1,6])}</div>
+  <div class="card"><h3>Generala <span>50 · servida gana</span></h3>
+    <p>Cinco dados iguales. Si sale en el primer tiro, ganás la partida.</p>
+    ${dice([5,5,5,5,5])}<p style="margin-top:10px">Doble Generala (opcional): <b>100</b> puntos.</p></div>
+  <div class="card"><h3>Números <span>1 al 6</span></h3>
+    <p>Sumás solo los dados del número elegido.</p>
+    <div class="ex">${[4,4,4].map(n=>die(n)).join('')}${[1,6].map(n=>die(n,false,true)).join('')}</div>
+    <p style="margin:8px 0 0">Tres 4 = <b>12</b> puntos en el 4.</p></div>
+  <div class="card"><h3>Tachar <span>0</span></h3>
+    <p>Si no te sirve el tiro, tachás una categoría y anotás 0 en ella. Ya no la podés volver a usar.</p></div>`;
+
+render();
+</script>
+</body>
+</html>
